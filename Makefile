@@ -21,7 +21,7 @@ module: module.c OAuth2/src/oauth2.c OAuth2/src/curl_request.c util/common.c uti
 	$(CC) $(CFLAGS) -o $(BIN) $+ $(LDFLAGS)
 
 test: clean setup
-	make module CFLAGS=-DTEST BIN=$(BINTEST)
+	make module CFLAGS="-Wall -g -DTEST" BIN=$(BINTEST)
 
 
 install: all

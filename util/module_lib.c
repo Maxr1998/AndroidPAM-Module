@@ -10,6 +10,19 @@
 #define FIREBASE_URL "https://androidpam-979c7.firebaseio.com/users/"
 #define FIREBASE_AUTH_ARG ".json?auth="
 
+void gen_random(char *s, const int len) {
+    static const char alphanum[] =
+        "0123456789"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz";
+
+    for (int i = 0; i < len; ++i) {
+        s[i] = alphanum[rand() % (sizeof(alphanum) - 1)];
+    }
+
+    s[len] = 0;
+}
+
 char *firebase_get(char *path, char *local_id, char *id_token) {
   char *response;
   char *url = malloc(46 + strlen(local_id) + strlen(path) + 11 + strlen(id_token));
@@ -38,7 +51,7 @@ int firebase_set(char *path, char *local_id, char *id_token, char *value) {
 base64string base64decode(const void *b64_decode_this, int decode_this_many_bytes) {
   base64string base;
   BIO *b64_bio, *mem_bio;      //Declares two OpenSSL BIOs: a base64 filter and a memory BIO.
-  char *base64_decoded = calloc((decode_this_many_bytes*3)/4+1, sizeof(char) ); //+1 = null.
+  unsigned char *base64_decoded = calloc((decode_this_many_bytes*3)/4+1, sizeof(unsigned char) ); //+1 = null.
   b64_bio = BIO_new(BIO_f_base64());                      //Initialize our base64 filter BIO.
   mem_bio = BIO_new(BIO_s_mem());                         //Initialize our memory source BIO.
   BIO_write(mem_bio, b64_decode_this, decode_this_many_bytes); //Base64 data saved in source.

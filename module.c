@@ -23,7 +23,7 @@ void debug_print(char *out) {
   #endif
 }
 
-void main() {
+int main() {
   #ifdef TEST
   pam_sm_authenticate(NULL, 0, 0, NULL);
   #else
@@ -33,12 +33,13 @@ void main() {
 /* PAM entry point for authentication verification */
 int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv) {
   int retVal = PAM_IGNORE;
+
+  #ifndef TEST
   struct passwd *pw = NULL, pw_s;
   const char *user = NULL;
   char buffer[1024];
   int pgu_ret, gpn_ret;
 
-  #ifndef TEST
   pgu_ret = pam_get_user(pamh, &user, NULL);
   if (pgu_ret != PAM_SUCCESS || user == NULL) {
     return(PAM_IGNORE);
@@ -59,6 +60,8 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
   struct json_object *info_jo = NULL;
   char *local_id = NULL;
   char *id_token = NULL;
+  int clength = 32;
+  char challenge[clength];
 
   // MAIN LOGIC
   debug_print("Logging in...\n");
@@ -110,11 +113,15 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
   json_object_put(info_jo);
 
   // Create and send challenge
-  char *challenge = "TEST";
-
+  gen_random(challenge, clength);
   debug_print("Sending challenge... ");
   fflush(stdout);
-  firebase_set("/request/challenge", local_id, id_token, "\"TEST\"");
+  char *tmp_challenge = malloc(clength + 2);
+  strcpy(tmp_challenge, "\"");
+  strcpy(tmp_challenge + 1, challenge);
+  strcpy(tmp_challenge + 1 + clength, "\"");
+  firebase_set("/request/challenge", local_id, id_token, tmp_challenge);
+  free(tmp_challenge);
   firebase_set("/request/state", local_id, id_token, "\"request\"");
 
   debug_print("Done.\nWaiting for response and signature...\n");
@@ -126,7 +133,7 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
   // Get signature and verify it
   output = firebase_get("/request/response", local_id, id_token);
   debug_print("Received response!\n");
-  char *p = strdup(output);
+  unsigned char *p = strdup(output);
   p++[strlen(p)] = 0;
   char *public_key_path = malloc(strlen(app_dir_path) + 11);
   strcat(strcpy(public_key_path, app_dir_path), "/public.pem");

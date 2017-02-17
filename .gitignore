@@ -1,4 +1,4 @@
 # Built files
 setup
-libpam.so
+pam_android.so
 module

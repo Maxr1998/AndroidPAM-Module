@@ -55,6 +55,8 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
   #endif
 
   // VARIABLES
+  curl_global_init(CURL_GLOBAL_ALL);
+  CURL *handle = curl_easy_init();
   char *app_dir_path = create_app_dir_from_home(home_dir, false);
   char *output = NULL;
   struct json_object *info_jo = NULL;
@@ -96,7 +98,7 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
   strcpy(post_data + 26, tokens.access_token);
   oauth2_tokens_cleanup(tokens);
   strcpy(post_data + strlen(post_data), "&providerId=google.com\",\"requestUri\":\"http://localhost\",\"returnSecureToken\":true}");
-  output = curl_request(GOOGLE_ID_SERVER, slist1, METHOD_POST, post_data);
+  output = curl_request(handle, GOOGLE_ID_SERVER, slist1, METHOD_POST, post_data);
   curl_slist_free_all(slist1);
   free(post_data);
 
@@ -120,18 +122,18 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
   strcpy(tmp_challenge, "\"");
   strcpy(tmp_challenge + 1, challenge);
   strcpy(tmp_challenge + 1 + clength, "\"");
-  firebase_set("/request/challenge", local_id, id_token, tmp_challenge);
+  firebase_set(handle, "/request/challenge", local_id, id_token, tmp_challenge);
   free(tmp_challenge);
-  firebase_set("/request/state", local_id, id_token, "\"request\"");
+  firebase_set(handle, "/request/state", local_id, id_token, "\"request\"");
 
   debug_print("Done.\nWaiting for response and signature...\n");
-  while (strcmp(output = firebase_get("/request/state", local_id, id_token), "\"signed\"") != 0) {
+  while (strcmp(output = firebase_get(handle, "/request/state", local_id, id_token), "\"signed\"") != 0) {
     free(output);
   }
   free(output);
 
   // Get signature and verify it
-  output = firebase_get("/request/response", local_id, id_token);
+  output = firebase_get(handle, "/request/response", local_id, id_token);
   debug_print("Received response!\n");
   unsigned char *p = strdup(output);
   p++[strlen(p)] = 0;
@@ -143,10 +145,12 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
   free(--p);
   free(public_key_path);
 
-  firebase_set("/request/response", local_id, id_token, "\"\"");
-  firebase_set("/request/state", local_id, id_token, "\"idle\"");
+  firebase_set(handle, "/request/response", local_id, id_token, "\"\"");
+  firebase_set(handle, "/request/state", local_id, id_token, "\"idle\"");
 
   CLEANUP:
+  curl_easy_cleanup(handle);
+  curl_global_cleanup();
   free(app_dir_path);
   free(output);
   json_object_put(info_jo);

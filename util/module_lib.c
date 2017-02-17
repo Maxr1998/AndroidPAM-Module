@@ -23,7 +23,7 @@ void gen_random(char *s, const int len) {
     s[len] = 0;
 }
 
-char *firebase_get(char *path, char *local_id, char *id_token) {
+char *firebase_get(CURL *handle, char *path, char *local_id, char *id_token) {
   char *response;
   char *url = malloc(46 + strlen(local_id) + strlen(path) + 11 + strlen(id_token));
   strcpy(url, FIREBASE_URL);
@@ -31,19 +31,19 @@ char *firebase_get(char *path, char *local_id, char *id_token) {
   strcpy(url + strlen(url), path);
   strcpy(url + strlen(url), FIREBASE_AUTH_ARG);
   strcpy(url + strlen(url), id_token);
-  response = curl_make_request(url,  NULL);
+  response = curl_request(handle, url, NULL, METHOD_POST, NULL);
   free(url);
   return response;
 }
 
-int firebase_set(char *path, char *local_id, char *id_token, char *value) {
+int firebase_set(CURL *handle, char *path, char *local_id, char *id_token, char *value) {
   char *url = malloc(46 + strlen(local_id) + strlen(path) + 11 + strlen(id_token));
   strcpy(url, FIREBASE_URL);
   strcpy(url + 46, local_id);
   strcpy(url + strlen(url), path);
   strcpy(url + strlen(url), FIREBASE_AUTH_ARG);
   strcpy(url + strlen(url), id_token);
-  free(curl_request(url, NULL, METHOD_PUT, value));
+  free(curl_request(handle, url, NULL, METHOD_PUT, value));
   free(url);
   return 0;
 }

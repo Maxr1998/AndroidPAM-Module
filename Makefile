@@ -1,31 +1,34 @@
 CC=gcc
 CFLAGS=-fPIC -DPIC -shared -rdynamic
 IFLAGS=-IOAuth2/include
-LDFLAGS=$(IFLAGS) `pkg-config --cflags --libs libcurl json-c libssl libcrypto`
-INSTALL_PATH=/lib/security/$(BIN)
+LDLIBS=`pkg-config --cflags --libs libcurl json-c libssl libcrypto`
 
-BIN=pam_android.so
-BINTEST=module
+COMMON_SOURCES=OAuth2/src/oauth2.c OAuth2/src/curl_request.c util/common.c
+
+NAME=pam_android.so
+NAME_TEST=module
+
+INSTALL_PATH=/lib/security/$(NAME)
 
 all: clean setup module
 
-.PHONY: clean setup module test
+.PHONY: clean setup module debug
 
 clean:
-	rm -f setup $(BIN) $(BINTEST)
+	rm -f setup $(NAME) $(NAME_TEST)
 
-setup: setup.c OAuth2/src/oauth2.c OAuth2/src/curl_request.c util/common.c util/server.c
-	$(CC) -o $@ $+ $(LDFLAGS)
+setup: setup.c $(COMMON_SOURCES) util/server.c
+	$(CC) -o $@ $+ $(IFLAGS) $(LDLIBS)
 
-module: module.c OAuth2/src/oauth2.c OAuth2/src/curl_request.c util/common.c util/module_lib.c /lib/x86_64-linux-gnu/libpam.so.0
-	$(CC) $(CFLAGS) -o $(BIN) $+ $(LDFLAGS)
+module: module.c $(COMMON_SOURCES) util/module_lib.c /lib/x86_64-linux-gnu/libpam.so.0
+	$(CC) $(CFLAGS) -o $(NAME) $+ $(IFLAGS) $(LDLIBS)
 
-test: clean setup
-	make module CFLAGS="-Wall -g -DTEST" BIN=$(BINTEST)
+debug: clean setup
+	make module CFLAGS="-Wall -g -DTEST" BIN=$(NAME_TEST)
 
 
 install: all
-	cp $(BIN) $(INSTALL_PATH)
+	cp $(NAME) $(INSTALL_PATH)
 	chown root:root $(INSTALL_PATH)
 	chmod 644 $(INSTALL_PATH)
 

@@ -9,6 +9,7 @@ NAME=pam_android.so
 NAME_TEST=module
 
 INSTALL_PATH=/lib/security/$(NAME)
+CONFIG_PATH=/usr/share/pam-configs/androidpam
 
 all: clean setup module
 
@@ -28,9 +29,15 @@ debug: clean setup
 
 
 install: all
+	# Module
 	cp $(NAME) $(INSTALL_PATH)
 	chown root:root $(INSTALL_PATH)
 	chmod 644 $(INSTALL_PATH)
+	# Config
+	cp config/androidpam $(CONFIG_PATH)
+	chown root:root $(CONFIG_PATH)
+	chmod 644 $(CONFIG_PATH)
+	pam-auth-update
 
 uninstall:
 	rm -f $(INSTALL_PATH)

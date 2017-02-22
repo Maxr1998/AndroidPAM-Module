@@ -1,0 +1,6 @@
+Name: AndroidPAM
+Default: yes
+Priority: 256
+Auth-Type: Primary
+Auth:
+	[success=end default=ignore]	pam_android.so nullok_secure

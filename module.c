@@ -34,6 +34,8 @@ int main() {
 int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv) {
   int retVal = PAM_IGNORE;
 
+  printf("Checking AndroidPAM module...\n");
+
   #ifndef TEST
   struct passwd *pw = NULL, pw_s;
   const char *user = NULL;

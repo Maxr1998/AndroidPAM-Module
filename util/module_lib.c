@@ -85,7 +85,7 @@ int verify(unsigned char *base, char *challenge, char *keyPemPath) {
     FILE *publicKeyFile = fopen(keyPemPath, "r");
     if (publicKeyFile == NULL) {
       printf("Public key not found!\n");
-      break;
+      goto end;
     }
     PEM_read_PUBKEY(publicKeyFile, &public, NULL, NULL);
     fclose(publicKeyFile);
@@ -97,16 +97,17 @@ int verify(unsigned char *base, char *challenge, char *keyPemPath) {
     if (i > 0) {
       printf("Verified OK\n");
       retVal = 1;
-      break;
+      goto end;
     } else if (i == 0) {
       printf("Verification Failure\n");
-      break;
-    } else {
-      printf("Error\n");
-      ERR_print_errors_fp(stdout);
-      break;
+      goto end;
     }
   } while (0);
+
+  printf("Error in AndroidPAM!\n");
+  #ifdef TEST
+  ERR_print_errors_fp(stdout);
+  #endif
 
   // Cleanup
   end:

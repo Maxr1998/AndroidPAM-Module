@@ -1,3 +1,6 @@
+// Copyright (C) 2017  Maxr1998
+// For more information, view the LICENSE at the root of this project
+
 #include "module_lib.h"
 #include <stdlib.h>      // malloc
 #include <string.h>      // strlen

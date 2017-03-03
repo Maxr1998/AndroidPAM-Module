@@ -1,3 +1,6 @@
+// Copyright (C) 2017  Maxr1998
+// For more information, view the LICENSE at the root of this project
+
 #include "common.h"
 #include <stdbool.h>
 #include <stdlib.h>

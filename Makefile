@@ -1,3 +1,6 @@
+# Copyright (C) 2017  Maxr1998
+# For more information, view the LICENSE at the root of this project
+
 CC=gcc
 CFLAGS=-fPIC -DPIC -shared -rdynamic
 IFLAGS=-IOAuth2/include

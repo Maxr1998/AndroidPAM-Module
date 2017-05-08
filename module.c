@@ -22,6 +22,7 @@
 #include <pwd.h>
 #include <security/pam_appl.h>
 #include <security/pam_modules.h>
+#include <time.h>
 
 #include "oauth2.h"
 #include "curl_request.h"
@@ -143,7 +144,12 @@ int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **ar
   firebase_set(handle, "/request/state", local_id, id_token, "\"request\"");
 
   debug_print("Done.\nWaiting for response and signature...\n");
+  clock_t start = clock();
   while (strcmp(output = firebase_get(handle, "/request/state", local_id, id_token), "\"signed\"") != 0) {
+    if (((clock() - start) * 1000 / CLOCKS_PER_SEC) >= 15) {
+      printf("Timeout.\n");
+      goto CLEANUP;
+    }
     free(output);
   }
   free(output);

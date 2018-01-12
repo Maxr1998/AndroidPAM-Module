@@ -2,7 +2,7 @@
 # For more information, view the LICENSE at the root of this project
 
 CC=gcc
-CFLAGS=-fPIC -DPIC -shared -rdynamic
+CFLAGS=-Wall -Wextra -std=gnu99 -pedantic -pedantic-errors
 IFLAGS=-IOAuth2/include
 LDLIBS=`pkg-config --cflags --libs libcurl json-c libssl libcrypto`
 
@@ -22,13 +22,13 @@ clean:
 	rm -f setup $(NAME) $(NAME_TEST)
 
 setup: setup.c $(COMMON_SOURCES) util/server.c
-	$(CC) -o $@ $+ $(IFLAGS) $(LDLIBS)
+	$(CC) $(CFLAGS) -o $@ $+ $(IFLAGS) $(LDLIBS)
 
-module: module.c $(COMMON_SOURCES) util/module_lib.c /lib/x86_64-linux-gnu/libpam.so.0
-	$(CC) $(CFLAGS) -o $(NAME) $+ $(IFLAGS) $(LDLIBS)
+module: module.c $(COMMON_SOURCES) util/module_lib.c /usr/lib/libpam.so.0
+	$(CC) -fPIC -DPIC -shared -rdynamic $(CFLAGS) -o $(NAME) $+ $(IFLAGS) $(LDLIBS)
 
 debug: clean setup
-	make module CFLAGS="-Wall -g -DTEST" BIN=$(NAME_TEST)
+	make module CFLAGS="-g -DTEST $(CFLAGS)" BIN=$(NAME_TEST)
 
 
 install: all

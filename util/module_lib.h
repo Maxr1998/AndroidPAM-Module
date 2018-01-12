@@ -6,15 +6,20 @@
 
 #include <curl/curl.h>
 
+#define GOOGLE_ID_SERVER "https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAssertion?key=AIzaSyADECXIeWAOJidQ-IrmKuxAp3zmUmz6btY"
+#define FIREBASE_URL "https://androidpam-979c7.firebaseio.com/users/"
+#define FIREBASE_AUTH_ARG ".json?auth="
+
 void gen_random(char *s, const int len);
 char *firebase_get(CURL *handle, char *path, char *local_id, char *id_token);
-int firebase_set(CURL *handle, char *path, char *local_id, char *id_token, char *value);
+void firebase_set(CURL *handle, char *path, char *local_id, char *id_token, char *value);
 
 typedef struct {
-  unsigned char *pointer;
-  int size;
+	unsigned char *pointer;
+	int size;
 } base64string;
+
 base64string base64decode(const void *b64_decode_this, int decode_this_many_bytes);
-int verify(unsigned char *base, char *challenge, char *keyPemPath);
+int verify(const char *base, const char *challenge, FILE *public_key_file);
 
 #endif
